@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Info, Target, BarChart3 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/utils/currency';
 import { calculateInvestmentProjection } from '@/utils/investmentCalc';
@@ -129,22 +130,16 @@ export function InvestmentPlanner() {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            type="number"
-            step="1000"
-            min="0"
+          <CurrencyInput
             label="Current Portfolio Value"
             value={portfolioValue}
-            onChange={(e) => setPortfolioValue(parseFloat(e.target.value) || 0)}
+            onChange={setPortfolioValue}
           />
 
-          <Input
-            type="number"
-            step="100"
-            min="0"
+          <CurrencyInput
             label="Monthly Contribution"
             value={monthlyContribution}
-            onChange={(e) => setMonthlyContribution(parseFloat(e.target.value) || 0)}
+            onChange={setMonthlyContribution}
           />
 
           <Input
@@ -296,15 +291,19 @@ export function InvestmentPlanner() {
               </p>
               <ResponsiveContainer width="100%" height={400}>
                 <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
                   <XAxis
                     dataKey="year"
-                    label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
-                    stroke="#9ca3af"
+                    label={{ value: 'Year', position: 'insideBottom', offset: -5, className: 'fill-gray-600 dark:fill-gray-400' }}
+                    className="text-xs"
+                    tick={{ fill: 'currentColor', className: 'fill-gray-600 dark:fill-gray-400' }}
+                    stroke="currentColor"
                   />
                   <YAxis
                     tickFormatter={formatYAxis}
-                    stroke="#9ca3af"
+                    className="text-xs"
+                    tick={{ fill: 'currentColor', className: 'fill-gray-600 dark:fill-gray-400' }}
+                    stroke="currentColor"
                     width={70}
                   />
                   <Tooltip
@@ -321,10 +320,11 @@ export function InvestmentPlanner() {
                     }}
                     labelFormatter={(label) => `Year ${label}`}
                     contentStyle={{
-                      backgroundColor: 'rgba(255,255,255,0.95)',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: 'rgb(255 255 255 / 0.95)',
+                      border: '1px solid rgb(229 231 235)',
                       borderRadius: '8px',
                     }}
+                    wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
                   />
                   <Legend
                     formatter={(value) => {
@@ -353,9 +353,10 @@ export function InvestmentPlanner() {
                     type="monotone"
                     dataKey="p10"
                     stroke="none"
-                    fill="#ffffff"
+                    fill="currentColor"
                     fillOpacity={1}
                     name="p10"
+                    className="fill-white dark:fill-gray-800"
                   />
 
                   {/* Inner band: 25th-75th */}
@@ -371,9 +372,10 @@ export function InvestmentPlanner() {
                     type="monotone"
                     dataKey="p25"
                     stroke="none"
-                    fill="#ffffff"
+                    fill="currentColor"
                     fillOpacity={1}
                     name="p25"
+                    className="fill-white dark:fill-gray-800"
                   />
 
                   {/* Median line */}
@@ -482,12 +484,20 @@ export function InvestmentPlanner() {
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
+                  className="[&_text]:fill-gray-700 [&_text]:dark:fill-gray-300"
                 >
                   {buckets.map((bucket, index) => (
                     <Cell key={`cell-${index}`} fill={bucket.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgb(255 255 255 / 0.95)',
+                    border: '1px solid rgb(229 231 235)',
+                    borderRadius: '0.5rem',
+                  }}
+                  wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

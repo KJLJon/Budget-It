@@ -1,13 +1,13 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
 import type { Transaction } from '@/types';
-import { useEffect } from 'react';
 
 const transactionSchema = z.object({
   date: z.string().min(1, 'Date is required'),
@@ -32,6 +32,7 @@ export function TransactionForm({ transaction, onSubmit, onCancel }: Transaction
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<TransactionFormData>({
@@ -47,13 +48,9 @@ export function TransactionForm({ transaction, onSubmit, onCancel }: Transaction
         }
       : {
           date: new Date().toISOString().split('T')[0],
+          amount: 0,
         },
   });
-
-  // Register amount as number
-  useEffect(() => {
-    register('amount', { valueAsNumber: true });
-  }, [register]);
 
   const onFormSubmit = (data: TransactionFormData) => {
     // Determine if expense or income based on category
@@ -95,13 +92,17 @@ export function TransactionForm({ transaction, onSubmit, onCancel }: Transaction
         placeholder="e.g., Grocery Store, Salary"
       />
 
-      <Input
-        label="Amount"
-        type="number"
-        step="0.01"
-        {...register('amount', { valueAsNumber: true })}
-        error={errors.amount?.message}
-        placeholder="0.00"
+      <Controller
+        name="amount"
+        control={control}
+        render={({ field }) => (
+          <CurrencyInput
+            label="Amount"
+            value={field.value || 0}
+            onChange={field.onChange}
+            error={errors.amount?.message}
+          />
+        )}
       />
 
       <Select

@@ -116,6 +116,33 @@ export function CSVImport({ onClose }: CSVImportProps) {
       <div className="space-y-4">
         {step === 'upload' && (
           <>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Step 1: Select Account
+              </p>
+              <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                Which account do these transactions belong to? All transactions from this CSV will be imported to the selected account.
+              </p>
+              <Select
+                label="Account for this CSV Import *"
+                value={selectedAccount}
+                onChange={(e) => setSelectedAccount(e.target.value)}
+              >
+                <option value="">Choose account (checking, credit card, etc.)</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name} {account.institution ? `- ${account.institution}` : ''}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                Step 2: Upload CSV File
+              </p>
+            </div>
+
             <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
               <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -127,10 +154,16 @@ export function CSVImport({ onClose }: CSVImportProps) {
                 onChange={handleFileUpload}
                 className="hidden"
                 id="csv-upload"
+                disabled={!selectedAccount}
               />
               <label htmlFor="csv-upload">
-                <Button variant="primary" as="span" className="cursor-pointer">
-                  Choose CSV File
+                <Button
+                  variant="primary"
+                  as="span"
+                  className="cursor-pointer"
+                  disabled={!selectedAccount}
+                >
+                  {selectedAccount ? 'Choose CSV File' : 'Select Account First'}
                 </Button>
               </label>
             </div>
@@ -157,24 +190,30 @@ export function CSVImport({ onClose }: CSVImportProps) {
 
         {step === 'mapping' && (
           <>
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 Found {csvData.length} transactions. Map your CSV columns to transaction fields:
               </p>
             </div>
 
-            <Select
-              label="Account *"
-              value={selectedAccount}
-              onChange={(e) => setSelectedAccount(e.target.value)}
-            >
-              <option value="">Select account for these transactions</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </Select>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Importing to:</p>
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                    {accounts.find(a => a.id === selectedAccount)?.name || 'Unknown Account'}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep('upload')}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                >
+                  Change
+                </Button>
+              </div>
+            </div>
 
             <Select
               label="Date Column *"

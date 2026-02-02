@@ -251,6 +251,49 @@ The Portfolio Mix feature (`src/components/Analysis/PortfolioMix.tsx`) provides 
 - Change stock/bond/cash percentages for each risk level
 - Update rationale messages to explain changes
 
+### Envelope Budgeting Workflow
+
+Budget It supports envelope/bucket budgeting by using the Account system creatively:
+
+**Setup:**
+1. Create separate accounts for each envelope/bucket:
+   - "Checking - Main"
+   - "Checking - Daycare Fund"
+   - "Checking - Emergency Fund"
+   - "Savings - Vacation Fund"
+   - etc.
+
+2. Import bank statements to the primary account ("Checking - Main")
+
+**Daily Use:**
+1. When allocating money to a bucket:
+   - Add transaction: Checking Main → Daycare Fund ($500)
+   - Category: "Transfer" or "Savings Transfer"
+
+2. When spending from a bucket:
+   - Add transaction: Daycare Fund → Checking Main ($500)
+   - Category: "Transfer"
+   - Add transaction: Checking Main → Daycare Expense ($500)
+   - Category: "Childcare/Family" (proper expense category)
+
+**Visualization:**
+- **Account Balances tab** (Analysis page): Shows current balance in each bucket/envelope - your "balance sheet"
+- **Cash Flow Sankey tab** (Analysis page): Shows Income → Expense categories (ignores internal transfers)
+- **Dashboard**: Shows spending by category and monthly summaries
+
+**Key Points:**
+- Transfers between your own accounts use "Transfer" category
+- Actual expenses use proper expense categories (Food, Childcare, etc.)
+- The Sankey correctly shows income flowing to expenses, ignoring bucket movements
+- Account Balances view shows where money is sitting (envelope allocations)
+- This gives you both: money flow analysis AND bucket/envelope tracking
+
+**Why this works:**
+- Transfers are excluded from income/expense calculations (no double-counting)
+- Each bucket shows its current balance
+- Cash flow analysis remains clean and accurate
+- You can see both "where money is" (balances) and "where money goes" (expenses)
+
 ## GitHub Pages Deployment
 
 - Base URL configured as `/Budget-It/` in `vite.config.ts`

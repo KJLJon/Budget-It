@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { TrendingUp, AlertCircle, Info, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/utils/currency';
 import { calculatePortfolioAllocation, type PortfolioInputs } from '@/utils/portfolioAllocation';
@@ -16,8 +17,8 @@ const COLORS = {
 
 export function PortfolioMix() {
   const [inputs, setInputs] = useState<PortfolioInputs>({
-    birthdate: '1962-01-05',
-    firstWithdrawalDate: '2030-01-01',
+    birthdate: '',
+    firstWithdrawalDate: '',
     annualWithdrawal: 40000,
     portfolioAmount: 500000,
   });
@@ -98,31 +99,17 @@ export function PortfolioMix() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Annual Withdrawal Amount
-            </label>
-            <Input
-              type="number"
-              value={inputs.annualWithdrawal}
-              onChange={(e) => setInputs({ ...inputs, annualWithdrawal: Number(e.target.value) })}
-              min="0"
-              step="1000"
-            />
-          </div>
+          <CurrencyInput
+            label="Annual Withdrawal Amount"
+            value={inputs.annualWithdrawal}
+            onChange={(val) => setInputs({ ...inputs, annualWithdrawal: val })}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Current Portfolio Amount
-            </label>
-            <Input
-              type="number"
-              value={inputs.portfolioAmount}
-              onChange={(e) => setInputs({ ...inputs, portfolioAmount: Number(e.target.value) })}
-              min="0"
-              step="1000"
-            />
-          </div>
+          <CurrencyInput
+            label="Current Portfolio Amount"
+            value={inputs.portfolioAmount}
+            onChange={(val) => setInputs({ ...inputs, portfolioAmount: val })}
+          />
         </div>
 
         <Button
@@ -189,6 +176,7 @@ export function PortfolioMix() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
+                      className="[&_text]:fill-gray-700 [&_text]:dark:fill-gray-300"
                     >
                       {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={getColor(entry.name)} />
@@ -200,10 +188,11 @@ export function PortfolioMix() {
                         name
                       ]}
                       contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: 'rgb(255 255 255 / 0.95)',
+                        border: '1px solid rgb(229 231 235)',
                         borderRadius: '0.5rem',
                       }}
+                      wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
                     />
                   </PieChart>
                 </ResponsiveContainer>

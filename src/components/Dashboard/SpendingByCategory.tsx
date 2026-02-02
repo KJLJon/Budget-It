@@ -3,25 +3,26 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
 import { formatCurrency } from '@/utils/currency';
-import { startOfMonth, endOfMonth } from 'date-fns';
 
-export function SpendingByCategory() {
+interface SpendingByCategoryProps {
+  startDate: Date;
+  endDate: Date;
+  label: string;
+}
+
+export function SpendingByCategory({ startDate, endDate }: SpendingByCategoryProps) {
   const transactions = useTransactionStore((state) => state.transactions);
   const categories = useCategoryStore((state) => state.categories);
 
   const chartData = useMemo(() => {
-    const now = new Date();
-    const start = startOfMonth(now).toISOString();
-    const end = endOfMonth(now).toISOString();
-
-    // Filter to current month expenses only
+    // Filter to selected date range expenses only
     const expenses = transactions.filter((txn) => {
       const date = new Date(txn.date);
       const category = categories.find((cat) => cat.id === txn.categoryId);
       return (
         category?.type === 'expense' &&
-        date >= new Date(start) &&
-        date <= new Date(end)
+        date >= startDate &&
+        date <= endDate
       );
     });
 
@@ -45,7 +46,7 @@ export function SpendingByCategory() {
       .sort((a, b) => b.value - a.value);
 
     return data;
-  }, [transactions, categories]);
+  }, [transactions, categories, startDate, endDate]);
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -56,7 +57,7 @@ export function SpendingByCategory() {
           Spending by Category
         </h3>
         <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-          No expenses this month
+          No expenses in selected period
         </p>
       </div>
     );
@@ -84,6 +85,7 @@ export function SpendingByCategory() {
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"
+            className="[&_text]:fill-gray-700 [&_text]:dark:fill-gray-300"
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -92,10 +94,11 @@ export function SpendingByCategory() {
           <Tooltip
             formatter={(value: number) => formatCurrency(value)}
             contentStyle={{
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              border: '1px solid #e5e7eb',
+              backgroundColor: 'rgb(255 255 255 / 0.95)',
+              border: '1px solid rgb(229 231 235)',
               borderRadius: '0.5rem',
             }}
+            wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
           />
         </PieChart>
       </ResponsiveContainer>

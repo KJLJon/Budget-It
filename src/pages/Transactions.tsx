@@ -10,6 +10,7 @@ import { useTransactionStore } from '@/store/useTransactionStore';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
 import { useDebounce } from '@/hooks/useDebounce';
+import { formatCurrency } from '@/utils/currency';
 import type { Transaction } from '@/types';
 
 export function Transactions() {
@@ -149,13 +150,13 @@ export function Transactions() {
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Income</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            ${totalIncome.toFixed(2)}
+            {formatCurrency(totalIncome)}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Expenses</p>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            ${totalExpenses.toFixed(2)}
+            {formatCurrency(totalExpenses)}
           </p>
         </div>
       </div>

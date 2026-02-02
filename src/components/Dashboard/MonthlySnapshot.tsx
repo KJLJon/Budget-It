@@ -1,19 +1,20 @@
 import { ArrowDownCircle, ArrowUpCircle, TrendingUp } from 'lucide-react';
 import { useTransactionStore, useCategoryStore } from '@/store';
 import { formatCurrency, formatPercentage } from '@/utils/currency';
-import { startOfMonth, endOfMonth } from 'date-fns';
 
-export function MonthlySnapshot() {
+interface MonthlySnapshotProps {
+  startDate: Date;
+  endDate: Date;
+  label: string;
+}
+
+export function MonthlySnapshot({ startDate, endDate, label }: MonthlySnapshotProps) {
   const { transactions } = useTransactionStore();
   const { categories } = useCategoryStore();
 
-  const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
-
   const currentMonthTransactions = transactions.filter((txn) => {
     const txnDate = new Date(txn.date);
-    return txnDate >= monthStart && txnDate <= monthEnd;
+    return txnDate >= startDate && txnDate <= endDate;
   });
 
   const income = currentMonthTransactions
@@ -36,7 +37,7 @@ export function MonthlySnapshot() {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        This Month
+        {label}
       </h3>
 
       <div className="space-y-4">

@@ -5,7 +5,6 @@ import type { Account } from '@/types';
 function makeDebt(overrides: Partial<Account> & { name: string }): Account {
   return {
     id: overrides.name.toLowerCase().replace(/\s/g, '-'),
-    name: overrides.name,
     type: 'credit_card',
     category: 'liability',
     balance: overrides.balance ?? -1000,
@@ -28,7 +27,6 @@ describe('debtPayoff', () => {
 
       const result = calculateAvalanche(debts, 100);
       // First debt to be paid off should be High Rate (highest interest)
-      const payoffOrder = result.debts.map((d) => d.accountName);
       const firstPaidOff = result.debts.reduce((earliest, d) =>
         d.payments.length < earliest.payments.length ? d : earliest
       );

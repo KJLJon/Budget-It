@@ -7,7 +7,7 @@ import { calculateInvestmentProjection } from '@/utils/investmentCalc';
 import { runMonteCarloSimulation } from '@/utils/monteCarloSimulation';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend, Line, ComposedChart,
+  Area, XAxis, YAxis, CartesianGrid, Legend, Line, ComposedChart,
 } from 'recharts';
 
 interface Bucket {

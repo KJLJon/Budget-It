@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
 import { formatCurrency } from '@/utils/currency';

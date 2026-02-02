@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Plus, Minus, DollarSign } from 'lucide-react';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { formatCurrency } from '@/utils/currency';
-import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { addMonths } from 'date-fns';
 
 type ScenarioType = 'income' | 'expense' | 'savings' | 'debt';
 
@@ -20,7 +19,6 @@ export function Scenarios() {
   const transactions = useTransactionStore((state) => state.transactions);
   const getNetWorth = useAccountStore((state) => state.getNetWorth);
   const getTotalAssets = useAccountStore((state) => state.getTotalAssets);
-  const getTotalLiabilities = useAccountStore((state) => state.getTotalLiabilities);
 
   const [timeframe, setTimeframe] = useState(12); // months
   const [scenarios, setScenarios] = useState<ScenarioInput[]>([

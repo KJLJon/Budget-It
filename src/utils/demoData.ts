@@ -1,4 +1,4 @@
-import type { Account, Transaction, Category } from '@/types';
+import type { Account, Transaction } from '@/types';
 import { subDays, subMonths } from 'date-fns';
 
 /**
@@ -38,13 +38,13 @@ export function generateDemoAccounts(): Omit<Account, 'id' | 'createdAt' | 'upda
     },
     {
       name: 'Auto Loan',
-      type: 'auto_loan',
+      type: 'loan',
       category: 'liability',
       balance: -8500.0,
       institution: 'Toyota Financial',
       interestRate: 4.5,
       minimumPayment: 285.0,
-      term: 48,
+      termMonths: 48,
     },
     {
       name: 'Student Loan',
@@ -54,7 +54,7 @@ export function generateDemoAccounts(): Omit<Account, 'id' | 'createdAt' | 'upda
       institution: 'Federal Direct',
       interestRate: 5.8,
       minimumPayment: 245.0,
-      term: 120,
+      termMonths: 120,
     },
   ];
 }

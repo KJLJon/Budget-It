@@ -34,7 +34,6 @@ export function TransactionForm({ transaction, onSubmit, onCancel }: Transaction
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: transaction

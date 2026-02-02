@@ -1,8 +1,9 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Select } from '@/components/ui/Select';
 import type { Account, AccountType } from '@/types';
 
@@ -47,6 +48,7 @@ const liabilityTypes: { value: AccountType; label: string }[] = [
 export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
   const {
     register,
+    control,
     handleSubmit,
     watch,
     formState: { errors },
@@ -93,13 +95,17 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
         {...register('name')}
       />
 
-      <Input
-        label="Current Balance"
-        type="number"
-        step="0.01"
-        placeholder="0.00"
-        error={errors.balance?.message}
-        {...register('balance', { valueAsNumber: true })}
+      <Controller
+        name="balance"
+        control={control}
+        render={({ field }) => (
+          <CurrencyInput
+            label="Current Balance"
+            value={field.value || 0}
+            onChange={field.onChange}
+            error={errors.balance?.message}
+          />
+        )}
       />
 
       <Input
@@ -127,13 +133,17 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
             {...register('interestRate', { valueAsNumber: true })}
           />
 
-          <Input
-            label="Original Amount"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            error={errors.originalAmount?.message}
-            {...register('originalAmount', { valueAsNumber: true })}
+          <Controller
+            name="originalAmount"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                label="Original Amount"
+                value={field.value || 0}
+                onChange={field.onChange}
+                error={errors.originalAmount?.message}
+              />
+            )}
           />
 
           <Input
@@ -151,13 +161,17 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
             {...register('termMonths', { valueAsNumber: true })}
           />
 
-          <Input
-            label="Minimum Payment"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            error={errors.minimumPayment?.message}
-            {...register('minimumPayment', { valueAsNumber: true })}
+          <Controller
+            name="minimumPayment"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                label="Minimum Payment"
+                value={field.value || 0}
+                onChange={field.onChange}
+                error={errors.minimumPayment?.message}
+              />
+            )}
           />
 
           <div className="flex items-center">

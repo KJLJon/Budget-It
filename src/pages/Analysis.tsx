@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { TrendingDown, TrendingUp, DollarSign, GitBranch, Repeat } from 'lucide-react';
+import { TrendingDown, TrendingUp, DollarSign, GitBranch, Repeat, PieChart, Wallet } from 'lucide-react';
 import { DebtPayoff } from '@/components/Analysis/DebtPayoff';
 import { RecurringTransactions } from '@/components/Analysis/RecurringTransactions';
 import { Scenarios } from '@/components/Analysis/Scenarios';
 import { InvestmentPlanner } from '@/components/Analysis/InvestmentPlanner';
 import { CashFlowSankey } from '@/components/Analysis/CashFlowSankey';
+import { PortfolioMix } from '@/components/Analysis/PortfolioMix';
+import { AccountBalances } from '@/components/Analysis/AccountBalances';
 
-type AnalysisTab = 'cashflow' | 'debt' | 'recurring' | 'investments' | 'scenarios';
+type AnalysisTab = 'cashflow' | 'balances' | 'debt' | 'recurring' | 'investments' | 'portfolio-mix' | 'scenarios';
 
 export function Analysis() {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('debt');
@@ -29,6 +31,17 @@ export function Analysis() {
         >
           <TrendingUp className="w-4 h-4" />
           Cash Flow
+        </button>
+        <button
+          onClick={() => setActiveTab('balances')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors whitespace-nowrap ${
+            activeTab === 'balances'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <Wallet className="w-4 h-4" />
+          Balances
         </button>
         <button
           onClick={() => setActiveTab('debt')}
@@ -64,6 +77,17 @@ export function Analysis() {
           Investments
         </button>
         <button
+          onClick={() => setActiveTab('portfolio-mix')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors whitespace-nowrap ${
+            activeTab === 'portfolio-mix'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <PieChart className="w-4 h-4" />
+          Portfolio Mix
+        </button>
+        <button
           onClick={() => setActiveTab('scenarios')}
           className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'scenarios'
@@ -79,11 +103,15 @@ export function Analysis() {
       {/* Tab Content */}
       {activeTab === 'cashflow' && <CashFlowSankey />}
 
+      {activeTab === 'balances' && <AccountBalances />}
+
       {activeTab === 'debt' && <DebtPayoff />}
 
       {activeTab === 'recurring' && <RecurringTransactions />}
 
       {activeTab === 'investments' && <InvestmentPlanner />}
+
+      {activeTab === 'portfolio-mix' && <PortfolioMix />}
 
       {activeTab === 'scenarios' && <Scenarios />}
     </div>

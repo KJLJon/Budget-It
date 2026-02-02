@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Plus, Minus, DollarSign } from 'lucide-react';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { formatCurrency } from '@/utils/currency';
-import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { addMonths } from 'date-fns';
 
 type ScenarioType = 'income' | 'expense' | 'savings' | 'debt';
 
@@ -20,7 +20,6 @@ export function Scenarios() {
   const transactions = useTransactionStore((state) => state.transactions);
   const getNetWorth = useAccountStore((state) => state.getNetWorth);
   const getTotalAssets = useAccountStore((state) => state.getTotalAssets);
-  const getTotalLiabilities = useAccountStore((state) => state.getTotalLiabilities);
 
   const [timeframe, setTimeframe] = useState(12); // months
   const [scenarios, setScenarios] = useState<ScenarioInput[]>([
@@ -176,18 +175,14 @@ export function Scenarios() {
             />
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">$</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={scenario.monthlyAmount}
-                onChange={(e) =>
-                  updateScenario(index, { monthlyAmount: parseFloat(e.target.value) || 0 })
-                }
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="0.00"
-              />
+              <div className="flex-1">
+                <CurrencyInput
+                  value={scenario.monthlyAmount}
+                  onChange={(val) => updateScenario(index, { monthlyAmount: val })}
+                  className="text-sm"
+                  placeholder="0.00"
+                />
+              </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">/ month</span>
               <button
                 onClick={() => removeScenario(index)}

@@ -6,9 +6,6 @@ import { formatCurrency } from '@/utils/currency';
 import {
   sankey,
   sankeyLinkHorizontal,
-  SankeyGraph,
-  SankeyNode as D3SankeyNode,
-  SankeyLink as D3SankeyLink,
 } from 'd3-sankey';
 
 interface SankeyNode {

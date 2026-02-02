@@ -5,7 +5,11 @@ import { useCategoryStore } from '@/store/useCategoryStore';
 import { formatCurrency } from '@/utils/currency';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
-export function IncomeVsExpenses() {
+interface IncomeVsExpensesProps {
+  monthsToShow: number;
+}
+
+export function IncomeVsExpenses({ monthsToShow }: IncomeVsExpensesProps) {
   const transactions = useTransactionStore((state) => state.transactions);
   const { categories } = useCategoryStore();
 
@@ -13,8 +17,8 @@ export function IncomeVsExpenses() {
     const months = [];
     const now = new Date();
 
-    // Get last 6 months
-    for (let i = 5; i >= 0; i--) {
+    // Get last N months
+    for (let i = monthsToShow - 1; i >= 0; i--) {
       const date = subMonths(now, i);
       const start = startOfMonth(date);
       const end = endOfMonth(date);
@@ -47,7 +51,7 @@ export function IncomeVsExpenses() {
     }
 
     return months;
-  }, [transactions, categories]);
+  }, [transactions, categories, monthsToShow]);
 
   const hasData = chartData.some((month) => month.income > 0 || month.expenses > 0);
 
@@ -67,29 +71,32 @@ export function IncomeVsExpenses() {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Income vs Expenses (Last 6 Months)
+        Income vs Expenses (Last {monthsToShow} Months)
       </h3>
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
           <XAxis
             dataKey="month"
-            stroke="#9ca3af"
-            style={{ fontSize: '0.875rem' }}
+            className="text-xs"
+            tick={{ fill: 'currentColor', className: 'fill-gray-600 dark:fill-gray-400' }}
+            stroke="currentColor"
           />
           <YAxis
-            stroke="#9ca3af"
-            style={{ fontSize: '0.875rem' }}
+            className="text-xs"
+            tick={{ fill: 'currentColor', className: 'fill-gray-600 dark:fill-gray-400' }}
+            stroke="currentColor"
             tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip
             formatter={(value: number) => formatCurrency(value)}
             contentStyle={{
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              border: '1px solid #e5e7eb',
+              backgroundColor: 'rgb(255 255 255 / 0.95)',
+              border: '1px solid rgb(229 231 235)',
               borderRadius: '0.5rem',
             }}
+            wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
           />
           <Legend />
           <Bar dataKey="income" fill="#10b981" name="Income" radius={[4, 4, 0, 0]} />

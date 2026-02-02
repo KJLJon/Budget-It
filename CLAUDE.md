@@ -210,6 +210,90 @@ Configured in `vite.config.ts`:
 - Sanitizes currency (removes $, handles parentheses for negatives)
 - Date parsing via date-fns with multiple format attempts
 
+### Portfolio Mix Recommendations
+
+The Portfolio Mix feature (`src/components/Analysis/PortfolioMix.tsx`) provides personalized asset allocation recommendations.
+
+**Location of key files:**
+- Algorithm: `src/utils/portfolioAllocation.ts`
+- ETF database: `src/utils/etfData.ts`
+- UI Component: `src/components/Analysis/PortfolioMix.tsx`
+
+**How the allocation algorithm works:**
+- Primary factor: Years until first withdrawal (time horizon)
+- Secondary factors: Age, withdrawal rate vs portfolio size
+- Uses modern glide path approach (more aggressive than traditional "100 minus age")
+- Adjusts conservatively for high withdrawal rates (>5%)
+- Follows 4% safe withdrawal rate guidelines
+- Allocations rounded to nearest 5%
+
+**Asset class breakdown:**
+- US Stocks: 70% of total stock allocation
+- International Stocks: 30% of total stock allocation
+- Bonds: Mix of total market and short-term based on time horizon
+- Cash: Increased as withdrawal date approaches
+
+**ETF Selection Logic:**
+- Prefers low-cost providers (Schwab, Vanguard, iShares)
+- Uses broad market funds for simplicity
+- Splits international into developed/emerging for larger allocations
+- Adds short-term bonds near retirement for stability
+
+**Adding new ETFs to recommendations:**
+1. Add ETF data to `ETF_DATABASE` array in `src/utils/etfData.ts`
+2. Include ticker, name, provider, assetClass, expenseRatio, description
+3. Update `generateETFRecommendations()` in `src/utils/portfolioAllocation.ts` if needed
+4. Available asset classes: us_stock_broad, us_stock_large, us_stock_mid, us_stock_small, intl_stock_developed, intl_stock_emerging, intl_stock_total, bond_total, bond_govt, bond_tips, bond_short_term, bond_intl, cash
+
+**Customizing allocation rules:**
+- Modify `determineAllocation()` function in `src/utils/portfolioAllocation.ts`
+- Adjust time-based thresholds (currently: >20yr, >15yr, >10yr, >5yr, >0yr, withdrawing)
+- Change stock/bond/cash percentages for each risk level
+- Update rationale messages to explain changes
+
+### Envelope Budgeting Workflow
+
+Budget It supports envelope/bucket budgeting by using the Account system creatively:
+
+**Setup:**
+1. Create separate accounts for each envelope/bucket:
+   - "Checking - Main"
+   - "Checking - Daycare Fund"
+   - "Checking - Emergency Fund"
+   - "Savings - Vacation Fund"
+   - etc.
+
+2. Import bank statements to the primary account ("Checking - Main")
+
+**Daily Use:**
+1. When allocating money to a bucket:
+   - Add transaction: Checking Main → Daycare Fund ($500)
+   - Category: "Transfer" or "Savings Transfer"
+
+2. When spending from a bucket:
+   - Add transaction: Daycare Fund → Checking Main ($500)
+   - Category: "Transfer"
+   - Add transaction: Checking Main → Daycare Expense ($500)
+   - Category: "Childcare/Family" (proper expense category)
+
+**Visualization:**
+- **Account Balances tab** (Analysis page): Shows current balance in each bucket/envelope - your "balance sheet"
+- **Cash Flow Sankey tab** (Analysis page): Shows Income → Expense categories (ignores internal transfers)
+- **Dashboard**: Shows spending by category and monthly summaries
+
+**Key Points:**
+- Transfers between your own accounts use "Transfer" category
+- Actual expenses use proper expense categories (Food, Childcare, etc.)
+- The Sankey correctly shows income flowing to expenses, ignoring bucket movements
+- Account Balances view shows where money is sitting (envelope allocations)
+- This gives you both: money flow analysis AND bucket/envelope tracking
+
+**Why this works:**
+- Transfers are excluded from income/expense calculations (no double-counting)
+- Each bucket shows its current balance
+- Cash flow analysis remains clean and accurate
+- You can see both "where money is" (balances) and "where money goes" (expenses)
+
 ## GitHub Pages Deployment
 
 - Base URL configured as `/Budget-It/` in `vite.config.ts`

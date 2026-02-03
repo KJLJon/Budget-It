@@ -203,6 +203,7 @@ export function DataManagement() {
           </div>
 
           <Input
+            id="delete-confirm"
             label="Type DELETE to confirm"
             placeholder="DELETE"
             value={clearConfirmText}

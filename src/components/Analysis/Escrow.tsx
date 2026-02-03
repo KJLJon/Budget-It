@@ -338,6 +338,7 @@ export function Escrow() {
         >
           <div className="space-y-4">
             <Input
+              id="escrow-name"
               label="Item Name *"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -345,12 +346,14 @@ export function Escrow() {
             />
 
             <CurrencyInput
+              id="escrow-amount"
               label="Amount *"
               value={formData.amount}
               onChange={(val) => setFormData({ ...formData, amount: val })}
             />
 
             <Select
+              id="escrow-frequency"
               label="Frequency *"
               value={formData.frequency}
               onChange={(e) => setFormData({ ...formData, frequency: e.target.value as EscrowFrequency })}
@@ -361,6 +364,7 @@ export function Escrow() {
             </Select>
 
             <Input
+              id="escrow-date"
               label="Next Due Date *"
               type="date"
               value={formData.nextDate}
@@ -368,6 +372,7 @@ export function Escrow() {
             />
 
             <Input
+              id="escrow-notes"
               label="Notes (optional)"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}

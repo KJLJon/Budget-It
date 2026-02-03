@@ -25,7 +25,8 @@ export function Accounts() {
 
   useEffect(() => {
     fetchAccounts();
-  }, [fetchAccounts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const assetAccounts = accounts.filter((acc) => acc.category === 'asset');
   const liabilityAccounts = accounts.filter((acc) => acc.category === 'liability');

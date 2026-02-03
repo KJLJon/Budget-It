@@ -23,7 +23,8 @@ export function Dashboard() {
     fetchAccounts();
     fetchTransactions();
     fetchCategories();
-  }, [fetchAccounts, fetchTransactions, fetchCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Calculate date range based on selection
   const getDateRange = (): { start: Date; end: Date } => {

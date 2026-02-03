@@ -49,7 +49,8 @@ export function Escrow() {
 
   useEffect(() => {
     fetchEscrowItems();
-  }, [fetchEscrowItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only fetch once on mount
 
   // Calculate frequency in days
   const getFrequencyDays = (frequency: EscrowFrequency): number => {

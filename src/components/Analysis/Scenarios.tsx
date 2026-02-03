@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Plus, Minus, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { CurrencyInput } from '@/components/ui/CurrencyInput';
+import { SignedCurrencyInput } from '@/components/ui/SignedCurrencyInput';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { formatCurrency } from '@/utils/currency';
@@ -23,10 +23,10 @@ export function Scenarios() {
 
   const [timeframe, setTimeframe] = useState(12); // months
   const [scenarios, setScenarios] = useState<ScenarioInput[]>([
-    { type: 'income', description: 'Side hustle income', monthlyAmount: 0, enabled: false },
-    { type: 'expense', description: 'Cancel subscription', monthlyAmount: 0, enabled: false },
-    { type: 'savings', description: 'Increase 401k contribution', monthlyAmount: 0, enabled: false },
-    { type: 'debt', description: 'Extra debt payment', monthlyAmount: 0, enabled: false },
+    { type: 'income', description: 'Side hustle / income change', monthlyAmount: 0, enabled: false },
+    { type: 'expense', description: 'New subscription / expense change', monthlyAmount: 0, enabled: false },
+    { type: 'savings', description: 'Change 401k contribution', monthlyAmount: 0, enabled: false },
+    { type: 'debt', description: 'Change debt payment', monthlyAmount: 0, enabled: false },
   ]);
 
   // Calculate current monthly averages
@@ -64,22 +64,26 @@ export function Scenarios() {
     for (const scenario of enabled) {
       switch (scenario.type) {
         case 'income':
+          // Positive = income increase, Negative = income decrease
           incomeChange += scenario.monthlyAmount;
           break;
         case 'expense':
-          expenseChange += scenario.monthlyAmount; // Reduction in expenses
+          // Positive = expense increase, Negative = expense decrease (savings)
+          expenseChange += scenario.monthlyAmount;
           break;
         case 'savings':
+          // Positive = increase savings, Negative = decrease savings
           savingsChange += scenario.monthlyAmount;
           break;
         case 'debt':
+          // Positive = increase debt payment, Negative = decrease debt payment
           debtChange += scenario.monthlyAmount;
           break;
       }
     }
 
     const newIncome = currentMonthly.income + incomeChange;
-    const newExpenses = currentMonthly.expenses - expenseChange; // Expense reduction
+    const newExpenses = currentMonthly.expenses + expenseChange;
     const newNet = newIncome - newExpenses - savingsChange - debtChange;
 
     // Include baseline growth (current net * timeframe) plus scenario delta
@@ -159,10 +163,10 @@ export function Scenarios() {
                 }
                 className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="income">Income Increase</option>
-                <option value="expense">Expense Reduction</option>
-                <option value="savings">Savings Increase</option>
-                <option value="debt">Extra Debt Payment</option>
+                <option value="income">Income Change</option>
+                <option value="expense">Expense Change</option>
+                <option value="savings">Savings Change</option>
+                <option value="debt">Debt Payment Change</option>
               </select>
             </div>
 
@@ -176,14 +180,14 @@ export function Scenarios() {
 
             <div className="flex items-center gap-2">
               <div className="flex-1">
-                <CurrencyInput
+                <SignedCurrencyInput
                   value={scenario.monthlyAmount}
                   onChange={(val) => updateScenario(index, { monthlyAmount: val })}
                   className="text-sm"
                   placeholder="0.00"
                 />
               </div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">/ month</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">/ month</span>
               <button
                 onClick={() => removeScenario(index)}
                 className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
@@ -283,32 +287,48 @@ export function Scenarios() {
               {scenarioImpact.incomeChange !== 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Income</span>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    +{formatCurrency(scenarioImpact.incomeChange)}
+                  <span className={`text-sm font-semibold ${
+                    scenarioImpact.incomeChange > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {scenarioImpact.incomeChange > 0 ? '+' : ''}{formatCurrency(scenarioImpact.incomeChange)}
                   </span>
                 </div>
               )}
               {scenarioImpact.expenseChange !== 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Expenses</span>
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    -{formatCurrency(scenarioImpact.expenseChange)}
+                  <span className={`text-sm font-semibold ${
+                    scenarioImpact.expenseChange > 0
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-green-600 dark:text-green-400'
+                  }`}>
+                    {scenarioImpact.expenseChange > 0 ? '+' : ''}{formatCurrency(scenarioImpact.expenseChange)}
                   </span>
                 </div>
               )}
               {scenarioImpact.savingsChange !== 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Savings</span>
-                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                    +{formatCurrency(scenarioImpact.savingsChange)}
+                  <span className={`text-sm font-semibold ${
+                    scenarioImpact.savingsChange > 0
+                      ? 'text-purple-600 dark:text-purple-400'
+                      : 'text-orange-600 dark:text-orange-400'
+                  }`}>
+                    {scenarioImpact.savingsChange > 0 ? '+' : ''}{formatCurrency(scenarioImpact.savingsChange)}
                   </span>
                 </div>
               )}
               {scenarioImpact.debtChange !== 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Debt Payment</span>
-                  <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-                    +{formatCurrency(scenarioImpact.debtChange)}
+                  <span className={`text-sm font-semibold ${
+                    scenarioImpact.debtChange > 0
+                      ? 'text-orange-600 dark:text-orange-400'
+                      : 'text-purple-600 dark:text-purple-400'
+                  }`}>
+                    {scenarioImpact.debtChange > 0 ? '+' : ''}{formatCurrency(scenarioImpact.debtChange)}
                   </span>
                 </div>
               )}

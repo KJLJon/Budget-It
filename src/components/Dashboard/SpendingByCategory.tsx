@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
+import { ChartTooltip } from '@/components/ui/ChartTooltip';
 import { formatCurrency } from '@/utils/currency';
 
 interface SpendingByCategoryProps {
@@ -92,13 +93,12 @@ export function SpendingByCategory({ startDate, endDate }: SpendingByCategoryPro
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => formatCurrency(value)}
-            contentStyle={{
-              backgroundColor: 'rgb(255 255 255 / 0.95)',
-              border: '1px solid rgb(229 231 235)',
-              borderRadius: '0.5rem',
-            }}
-            wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
+            content={(props) => (
+              <ChartTooltip
+                {...props}
+                formatter={(value: number) => [formatCurrency(value), '']}
+              />
+            )}
           />
         </PieChart>
       </ResponsiveContainer>

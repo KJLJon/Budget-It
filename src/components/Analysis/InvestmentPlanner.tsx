@@ -3,6 +3,7 @@ import { Info, Target, BarChart3 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Button } from '@/components/ui/Button';
+import { ChartTooltip } from '@/components/ui/ChartTooltip';
 import { formatCurrency } from '@/utils/currency';
 import { calculateInvestmentProjection } from '@/utils/investmentCalc';
 import { runMonteCarloSimulation } from '@/utils/monteCarloSimulation';
@@ -307,24 +308,23 @@ export function InvestmentPlanner() {
                     width={70}
                   />
                   <Tooltip
-                    formatter={(value: number, name: string) => {
-                      const labels: Record<string, string> = {
-                        p10: '10th Percentile',
-                        p25: '25th Percentile',
-                        p50: 'Median',
-                        p75: '75th Percentile',
-                        p90: '90th Percentile',
-                        contributions: 'Total Contributions',
-                      };
-                      return [formatCurrency(value), labels[name] || name];
-                    }}
-                    labelFormatter={(label) => `Year ${label}`}
-                    contentStyle={{
-                      backgroundColor: 'rgb(255 255 255 / 0.95)',
-                      border: '1px solid rgb(229 231 235)',
-                      borderRadius: '8px',
-                    }}
-                    wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
+                    content={(props) => (
+                      <ChartTooltip
+                        {...props}
+                        formatter={(value: number, name: string) => {
+                          const labels: Record<string, string> = {
+                            p10: '10th Percentile',
+                            p25: '25th Percentile',
+                            p50: 'Median',
+                            p75: '75th Percentile',
+                            p90: '90th Percentile',
+                            contributions: 'Total Contributions',
+                          };
+                          return [formatCurrency(value), labels[name] || name];
+                        }}
+                        labelFormatter={(label: any) => `Year ${label}`}
+                      />
+                    )}
                   />
                   <Legend
                     formatter={(value) => {
@@ -338,6 +338,10 @@ export function InvestmentPlanner() {
                       };
                       return labels[value] || value;
                     }}
+                    wrapperStyle={{
+                      paddingTop: '1rem',
+                    }}
+                    iconType="line"
                   />
 
                   {/* Outer band: 10th-90th */}
@@ -345,8 +349,8 @@ export function InvestmentPlanner() {
                     type="monotone"
                     dataKey="p90"
                     stroke="none"
-                    fill="#c4b5fd"
-                    fillOpacity={0.3}
+                    fill="#9333ea"
+                    fillOpacity={0.15}
                     name="p90"
                   />
                   <Area
@@ -364,8 +368,8 @@ export function InvestmentPlanner() {
                     type="monotone"
                     dataKey="p75"
                     stroke="none"
-                    fill="#a78bfa"
-                    fillOpacity={0.3}
+                    fill="#7c3aed"
+                    fillOpacity={0.25}
                     name="p75"
                   />
                   <Area
@@ -382,8 +386,8 @@ export function InvestmentPlanner() {
                   <Line
                     type="monotone"
                     dataKey="p50"
-                    stroke="#7c3aed"
-                    strokeWidth={2}
+                    stroke="#6b21a8"
+                    strokeWidth={3}
                     dot={false}
                     name="p50"
                   />
@@ -392,8 +396,8 @@ export function InvestmentPlanner() {
                   <Line
                     type="monotone"
                     dataKey="contributions"
-                    stroke="#6b7280"
-                    strokeWidth={1.5}
+                    stroke="#374151"
+                    strokeWidth={2}
                     strokeDasharray="5 5"
                     dot={false}
                     name="contributions"
@@ -490,14 +494,7 @@ export function InvestmentPlanner() {
                     <Cell key={`cell-${index}`} fill={bucket.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgb(255 255 255 / 0.95)',
-                    border: '1px solid rgb(229 231 235)',
-                    borderRadius: '0.5rem',
-                  }}
-                  wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
-                />
+                <Tooltip content={(props) => <ChartTooltip {...props} />} />
               </PieChart>
             </ResponsiveContainer>
           </div>

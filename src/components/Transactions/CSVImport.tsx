@@ -172,6 +172,7 @@ export function CSVImport({ onClose }: CSVImportProps) {
                 Which account do these transactions belong to? All transactions from this CSV will be imported to the selected account.
               </p>
               <Select
+                id="csv-account-select"
                 label="Account for this CSV Import *"
                 value={selectedAccount}
                 onChange={(e) => setSelectedAccount(e.target.value)}
@@ -292,6 +293,7 @@ export function CSVImport({ onClose }: CSVImportProps) {
                       </td>
                       <td className="px-4 py-3">
                         <select
+                          id={`csv-mapping-${index}`}
                           value={cm.mappedTo}
                           onChange={(e) => {
                             const newMappings = [...columnMappings];

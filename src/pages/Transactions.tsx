@@ -37,7 +37,8 @@ export function Transactions() {
 
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((txn) => {

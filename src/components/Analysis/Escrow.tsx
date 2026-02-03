@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useEscrowStore } from '@/store/useEscrowStore';
 import { formatCurrency } from '@/utils/currency';
 import type { EscrowItem, EscrowFrequency } from '@/types';
-import { addDays, addMonths, differenceInDays, format, parseISO } from 'date-fns';
+import { addDays, addMonths, format, parseISO } from 'date-fns';
 
 interface EscrowFormData {
   name: string;
@@ -65,47 +65,6 @@ export function Escrow() {
     }
   };
 
-  // Calculate required balance on target date
-  const calculateRequiredBalance = useMemo(() => {
-    const target = parseISO(targetDate);
-    const today = new Date();
-    let totalRequired = 0;
-
-    escrowItems.forEach(item => {
-      let nextOccurrence = parseISO(item.nextDate);
-      const freqDays = getFrequencyDays(item.frequency);
-
-      // Count how many times this expense will occur before target date
-      let occurrences = 0;
-      while (nextOccurrence <= target) {
-        if (nextOccurrence >= today) {
-          occurrences++;
-        }
-        nextOccurrence = addDays(nextOccurrence, Math.round(freqDays));
-      }
-
-      totalRequired += item.amount * occurrences;
-    });
-
-    return totalRequired;
-  }, [escrowItems, targetDate]);
-
-  // Calculate per-paycheck contribution
-  const perPaycheckContribution = useMemo(() => {
-    const today = new Date();
-    const target = parseISO(targetDate);
-    const daysUntilTarget = differenceInDays(target, today);
-
-    if (daysUntilTarget <= 0) return 0;
-
-    const payFreqDays = getFrequencyDays(payFrequency);
-    const numPaychecks = Math.floor(daysUntilTarget / payFreqDays);
-
-    if (numPaychecks <= 0) return calculateRequiredBalance;
-
-    return calculateRequiredBalance / numPaychecks;
-  }, [calculateRequiredBalance, payFrequency, targetDate]);
-
   // Annual cost
   const annualCost = useMemo(() => {
     return escrowItems.reduce((total, item) => {
@@ -113,6 +72,85 @@ export function Escrow() {
       return total + (item.amount * timesPerYear);
     }, 0);
   }, [escrowItems]);
+
+  // Calculate per-paycheck contribution (based on annual cost)
+  const perPaycheckContribution = useMemo(() => {
+    const payFreqDays = getFrequencyDays(payFrequency);
+    const paychecksPerYear = 365.25 / payFreqDays;
+    return annualCost / paychecksPerYear;
+  }, [annualCost, payFrequency]);
+
+  // Simulate cash flow to find minimum required balance
+  const calculateRequiredBalance = useMemo(() => {
+    if (escrowItems.length === 0) return 0;
+
+    const startDate = parseISO(targetDate);
+    const endDate = addMonths(startDate, 12);
+    const payFreqDays = getFrequencyDays(payFrequency);
+
+    // Generate all events (bills and transfers) over 12 months
+    interface CashFlowEvent {
+      date: Date;
+      amount: number; // Positive for transfer in, negative for bill out
+      description: string;
+    }
+
+    const events: CashFlowEvent[] = [];
+
+    // Add all bill payments
+    escrowItems.forEach(item => {
+      let billDate = parseISO(item.nextDate);
+      const itemFreqDays = getFrequencyDays(item.frequency);
+
+      // Find first occurrence on or after start date
+      while (billDate < startDate) {
+        billDate = addDays(billDate, Math.round(itemFreqDays));
+      }
+
+      // Add all occurrences within 12 months
+      while (billDate <= endDate) {
+        events.push({
+          date: billDate,
+          amount: -item.amount,
+          description: `${item.name} payment`,
+        });
+        billDate = addDays(billDate, Math.round(itemFreqDays));
+      }
+    });
+
+    // Add all paycheck transfers
+    let transferDate = parseISO(nextPayDate);
+    // Find first transfer on or after start date
+    while (transferDate < startDate) {
+      transferDate = addDays(transferDate, Math.round(payFreqDays));
+    }
+
+    while (transferDate <= endDate) {
+      events.push({
+        date: transferDate,
+        amount: perPaycheckContribution,
+        description: 'Paycheck transfer',
+      });
+      transferDate = addDays(transferDate, Math.round(payFreqDays));
+    }
+
+    // Sort events by date
+    events.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    // Simulate account balance starting at $0
+    let balance = 0;
+    let minBalance = 0;
+
+    events.forEach(event => {
+      balance += event.amount;
+      if (balance < minBalance) {
+        minBalance = balance;
+      }
+    });
+
+    // Required starting balance is the absolute value of the minimum
+    return Math.abs(minBalance);
+  }, [escrowItems, targetDate, payFrequency, nextPayDate, perPaycheckContribution]);
 
   const handleSubmit = async () => {
     try {
@@ -162,8 +200,8 @@ export function Escrow() {
           <div className="text-sm text-blue-900 dark:text-blue-100">
             <p className="font-medium mb-1">Escrow Account Calculator</p>
             <p className="text-blue-800 dark:text-blue-200">
-              Track recurring expenses (insurance, property tax, HOA, etc.) and calculate how much to save each paycheck
-              to have funds available when bills are due. Perfect for escrow accounts or sinking funds.
+              Simulates cash flow over 12 months to find the minimum balance needed so your account never goes negative when bills are paid.
+              Set your pay schedule to see how much to transfer each paycheck.
             </p>
           </div>
         </div>
@@ -184,13 +222,13 @@ export function Escrow() {
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Target Balance</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Required Balance</p>
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatCurrency(calculateRequiredBalance)}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            by {format(parseISO(targetDate), 'MMM d, yyyy')}
+            minimum to avoid going negative
           </p>
         </div>
 
@@ -204,6 +242,61 @@ export function Escrow() {
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {payFrequency} transfers
+          </p>
+        </div>
+      </div>
+
+      {/* Contribution Calculator */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Pay Schedule
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Pay Frequency
+            </label>
+            <Select
+              value={payFrequency}
+              onChange={(e) => setPayFrequency(e.target.value as EscrowFrequency)}
+            >
+              {FREQUENCY_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Next Pay Date
+            </label>
+            <Input
+              type="date"
+              value={nextPayDate}
+              onChange={(e) => setNextPayDate(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Start Date
+            </label>
+            <Input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+          <p className="text-sm text-emerald-900 dark:text-emerald-100 mb-2">
+            <strong>Transfer {formatCurrency(perPaycheckContribution)} per {payFrequency} paycheck</strong>
+          </p>
+          <p className="text-xs text-emerald-800 dark:text-emerald-200">
+            Starting with {formatCurrency(calculateRequiredBalance)} in your account on {format(parseISO(targetDate), 'MMM d, yyyy')},
+            this transfer amount keeps your balance positive as bills are paid over the next 12 months.
           </p>
         </div>
       </div>
@@ -272,60 +365,6 @@ export function Escrow() {
         )}
       </div>
 
-      {/* Contribution Calculator */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Contribution Calculator
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Pay Frequency
-            </label>
-            <Select
-              value={payFrequency}
-              onChange={(e) => setPayFrequency(e.target.value as EscrowFrequency)}
-            >
-              {FREQUENCY_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Next Pay Date
-            </label>
-            <Input
-              type="date"
-              value={nextPayDate}
-              onChange={(e) => setNextPayDate(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Target Date
-            </label>
-            <Input
-              type="date"
-              value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
-          <p className="text-sm text-emerald-900 dark:text-emerald-100 mb-2">
-            <strong>Transfer {formatCurrency(perPaycheckContribution)} per {payFrequency} paycheck</strong>
-          </p>
-          <p className="text-xs text-emerald-800 dark:text-emerald-200">
-            This will give you {formatCurrency(calculateRequiredBalance)} by {format(parseISO(targetDate), 'MMM d, yyyy')} to cover all expenses due before that date.
-          </p>
-        </div>
-      </div>
-
       {/* Add/Edit Modal */}
       {isFormOpen && (
         <Modal
@@ -338,6 +377,7 @@ export function Escrow() {
         >
           <div className="space-y-4">
             <Input
+              id="escrow-name"
               label="Item Name *"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -345,12 +385,14 @@ export function Escrow() {
             />
 
             <CurrencyInput
+              id="escrow-amount"
               label="Amount *"
               value={formData.amount}
               onChange={(val) => setFormData({ ...formData, amount: val })}
             />
 
             <Select
+              id="escrow-frequency"
               label="Frequency *"
               value={formData.frequency}
               onChange={(e) => setFormData({ ...formData, frequency: e.target.value as EscrowFrequency })}
@@ -361,6 +403,7 @@ export function Escrow() {
             </Select>
 
             <Input
+              id="escrow-date"
               label="Next Due Date *"
               type="date"
               value={formData.nextDate}
@@ -368,6 +411,7 @@ export function Escrow() {
             />
 
             <Input
+              id="escrow-notes"
               label="Notes (optional)"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}

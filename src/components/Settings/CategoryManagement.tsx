@@ -16,7 +16,8 @@ export function CategoryManagement() {
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (category: Category) => {
     if (category.isSystem) {

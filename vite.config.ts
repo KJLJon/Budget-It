@@ -5,6 +5,47 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig({
+  server: {
+    host: true,        // Required for Docker (0.0.0.0)
+    port: 5173
+  },
+
+  optimizeDeps: {
+    include: [
+    'date-fns',
+    'zod',
+    'zustand',
+    'react-hook-form',
+    '@hookform/resolvers',
+    'd3-sankey',
+    'd3-scale',
+    'd3-shape',
+    'papaparse',
+    'dexie',
+    'dexie-react-hooks',
+    'lucide-react',
+    'react-hot-toast'
+    ]
+  },
+
+  esbuild: {
+    target: 'esnext',
+    jsx: 'automatic'
+  },
+
+  build: {
+    minify: false,     // Faster dev/CI builds
+    sourcemap: false,  // Enable only when debugging
+    rollupOptions: {
+      output: {
+        // Optional: split vendor chunks for faster builds
+        manualChunks: {
+          // vendor: ['react', 'react-dom']
+        }
+      }
+    }
+  },
+
   plugins: [
     react(),
     VitePWA({
@@ -60,14 +101,17 @@ export default defineConfig({
       }
     })
   ],
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
+
   base: '/Budget-It/',
+
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'node'
   }
 });

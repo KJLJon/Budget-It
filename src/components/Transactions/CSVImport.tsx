@@ -14,12 +14,18 @@ interface CSVImportProps {
 }
 
 type ImportStep = 'upload' | 'mapping' | 'preview' | 'complete';
+type FieldType = 'date' | 'description' | 'amount' | 'notes' | 'unused';
+
+interface ColumnMappingRow {
+  csvColumn: string;
+  mappedTo: FieldType;
+  sampleValue: string;
+}
 
 export function CSVImport({ onClose }: CSVImportProps) {
   const [step, setStep] = useState<ImportStep>('upload');
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<Partial<ColumnMapping>>({});
+  const [columnMappings, setColumnMappings] = useState<ColumnMappingRow[]>([]);
   const [selectedAccount, setSelectedAccount] = useState('');
   const [previewTransactions, setPreviewTransactions] = useState<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>[]>([]);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -38,9 +44,28 @@ export function CSVImport({ onClose }: CSVImportProps) {
         const rows = parseCSV(content);
         const detectedHeaders = Object.keys(rows[0] || {});
 
+        // Auto-detect column mappings
+        const detectedMapping = detectColumnMapping(detectedHeaders);
+
+        // Create column mapping rows with auto-detection
+        const mappings: ColumnMappingRow[] = detectedHeaders.map(header => {
+          let mappedTo: FieldType = 'unused';
+
+          // Check if this header was auto-detected for a field
+          if (detectedMapping.date === header) mappedTo = 'date';
+          else if (detectedMapping.description === header) mappedTo = 'description';
+          else if (detectedMapping.amount === header) mappedTo = 'amount';
+          else if (detectedMapping.notes === header) mappedTo = 'notes';
+
+          return {
+            csvColumn: header,
+            mappedTo,
+            sampleValue: rows[0]?.[header] || '',
+          };
+        });
+
         setCsvData(rows);
-        setHeaders(detectedHeaders);
-        setMapping(detectColumnMapping(detectedHeaders));
+        setColumnMappings(mappings);
         setStep('mapping');
       } catch (error) {
         alert(`Error parsing CSV: ${(error as Error).message}`);
@@ -50,8 +75,31 @@ export function CSVImport({ onClose }: CSVImportProps) {
   };
 
   const handleMappingNext = () => {
-    if (!mapping.date || !mapping.description || !mapping.amount || !selectedAccount) {
-      alert('Please map required columns (Date, Description, Amount) and select an account');
+    // Convert column mappings to ColumnMapping format
+    const mapping: Partial<ColumnMapping> = {};
+    columnMappings.forEach(cm => {
+      if (cm.mappedTo === 'date') mapping.date = cm.csvColumn;
+      else if (cm.mappedTo === 'description') mapping.description = cm.csvColumn;
+      else if (cm.mappedTo === 'amount') mapping.amount = cm.csvColumn;
+      else if (cm.mappedTo === 'notes') mapping.notes = cm.csvColumn;
+    });
+
+    // Validate required fields
+    if (!mapping.date || !mapping.description || !mapping.amount) {
+      alert('Please map required fields: Date, Description, and Amount');
+      return;
+    }
+
+    if (!selectedAccount) {
+      alert('Please select an account');
+      return;
+    }
+
+    // Check for duplicate mappings
+    const mappedFields = columnMappings.filter(cm => cm.mappedTo !== 'unused').map(cm => cm.mappedTo);
+    const duplicates = mappedFields.filter((field, index) => mappedFields.indexOf(field) !== index);
+    if (duplicates.length > 0) {
+      alert(`Duplicate field mappings detected: ${duplicates.join(', ')}. Each field can only be mapped once.`);
       return;
     }
 
@@ -192,7 +240,10 @@ export function CSVImport({ onClose }: CSVImportProps) {
           <>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Found {csvData.length} transactions. Map your CSV columns to transaction fields:
+                Found {csvData.length} transactions. Map your CSV columns to transaction fields below.
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Fields marked with * are required. Columns not needed can be set to "Unused".
               </p>
             </div>
 
@@ -215,57 +266,58 @@ export function CSVImport({ onClose }: CSVImportProps) {
               </div>
             </div>
 
-            <Select
-              label="Date Column *"
-              value={mapping.date || ''}
-              onChange={(e) => setMapping({ ...mapping, date: e.target.value })}
-            >
-              <option value="">Select column</option>
-              {headers.map((header) => (
-                <option key={header} value={header}>
-                  {header}
-                </option>
-              ))}
-            </Select>
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+                      CSV Column
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Sample Value
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Maps To
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {columnMappings.map((cm, index) => (
+                    <tr key={cm.csvColumn} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                        {cm.csvColumn}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                        {cm.sampleValue}
+                      </td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={cm.mappedTo}
+                          onChange={(e) => {
+                            const newMappings = [...columnMappings];
+                            newMappings[index].mappedTo = e.target.value as FieldType;
+                            setColumnMappings(newMappings);
+                          }}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        >
+                          <option value="unused">Unused</option>
+                          <option value="date">Date *</option>
+                          <option value="description">Description *</option>
+                          <option value="amount">Amount *</option>
+                          <option value="notes">Notes</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-            <Select
-              label="Description Column *"
-              value={mapping.description || ''}
-              onChange={(e) => setMapping({ ...mapping, description: e.target.value })}
-            >
-              <option value="">Select column</option>
-              {headers.map((header) => (
-                <option key={header} value={header}>
-                  {header}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              label="Amount Column *"
-              value={mapping.amount || ''}
-              onChange={(e) => setMapping({ ...mapping, amount: e.target.value })}
-            >
-              <option value="">Select column</option>
-              {headers.map((header) => (
-                <option key={header} value={header}>
-                  {header}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              label="Notes Column (optional)"
-              value={mapping.notes || ''}
-              onChange={(e) => setMapping({ ...mapping, notes: e.target.value })}
-            >
-              <option value="">None</option>
-              {headers.map((header) => (
-                <option key={header} value={header}>
-                  {header}
-                </option>
-              ))}
-            </Select>
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-4">
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                <strong>Note:</strong> Each field can only be mapped once. Make sure Date, Description, and Amount are all mapped before continuing.
+              </p>
+            </div>
 
             <div className="flex gap-3">
               <Button variant="secondary" onClick={() => setStep('upload')} className="flex-1">

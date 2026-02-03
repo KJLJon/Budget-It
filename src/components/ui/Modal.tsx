@@ -15,9 +15,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
 
-      // Focus the modal when it opens
-      modalRef.current?.focus();
-
       // Handle ESC key
       const handleEsc = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -33,7 +30,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     } else {
       document.body.style.overflow = 'unset';
     }
-  }, [isOpen, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

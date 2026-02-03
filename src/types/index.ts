@@ -113,3 +113,26 @@ export interface FinancialProfile {
   isActive: boolean;
   createdAt: string;
 }
+
+export type AnalysisType = 'investment-planner' | 'debt-payoff' | 'portfolio-mix' | 'scenarios' | 'escrow';
+
+export interface AnalysisData {
+  id: string;
+  type: AnalysisType;
+  data: any; // Flexible storage for different analysis types
+  updatedAt: string;
+}
+
+export type EscrowFrequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'semi-annual' | 'annual';
+
+export interface EscrowItem {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: EscrowFrequency;
+  lastDate?: string; // Last time it came out
+  nextDate: string; // Next time it comes out
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}

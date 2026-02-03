@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useCategoryStore } from '@/store/useCategoryStore';
+import { ChartTooltip } from '@/components/ui/ChartTooltip';
 import { formatCurrency } from '@/utils/currency';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
@@ -90,13 +91,12 @@ export function IncomeVsExpenses({ monthsToShow }: IncomeVsExpensesProps) {
             tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
           />
           <Tooltip
-            formatter={(value: number) => formatCurrency(value)}
-            contentStyle={{
-              backgroundColor: 'rgb(255 255 255 / 0.95)',
-              border: '1px solid rgb(229 231 235)',
-              borderRadius: '0.5rem',
-            }}
-            wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
+            content={(props) => (
+              <ChartTooltip
+                {...props}
+                formatter={(value: number) => [formatCurrency(value), '']}
+              />
+            )}
           />
           <Legend />
           <Bar dataKey="income" fill="#10b981" name="Income" radius={[4, 4, 0, 0]} />

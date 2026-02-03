@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingDown, TrendingUp, DollarSign, GitBranch, Repeat, PieChart, Wallet } from 'lucide-react';
+import { TrendingDown, TrendingUp, DollarSign, GitBranch, Repeat, PieChart, Wallet, Calendar } from 'lucide-react';
 import { DebtPayoff } from '@/components/Analysis/DebtPayoff';
 import { RecurringTransactions } from '@/components/Analysis/RecurringTransactions';
 import { Scenarios } from '@/components/Analysis/Scenarios';
@@ -7,8 +7,9 @@ import { InvestmentPlanner } from '@/components/Analysis/InvestmentPlanner';
 import { CashFlowSankey } from '@/components/Analysis/CashFlowSankey';
 import { PortfolioMix } from '@/components/Analysis/PortfolioMix';
 import { AccountBalances } from '@/components/Analysis/AccountBalances';
+import { Escrow } from '@/components/Analysis/Escrow';
 
-type AnalysisTab = 'cashflow' | 'balances' | 'debt' | 'recurring' | 'investments' | 'portfolio-mix' | 'scenarios';
+type AnalysisTab = 'cashflow' | 'balances' | 'debt' | 'recurring' | 'investments' | 'portfolio-mix' | 'escrow' | 'scenarios';
 
 export function Analysis() {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('debt');
@@ -88,6 +89,17 @@ export function Analysis() {
           Portfolio Mix
         </button>
         <button
+          onClick={() => setActiveTab('escrow')}
+          className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors whitespace-nowrap ${
+            activeTab === 'escrow'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          Escrow
+        </button>
+        <button
           onClick={() => setActiveTab('scenarios')}
           className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors whitespace-nowrap ${
             activeTab === 'scenarios'
@@ -112,6 +124,8 @@ export function Analysis() {
       {activeTab === 'investments' && <InvestmentPlanner />}
 
       {activeTab === 'portfolio-mix' && <PortfolioMix />}
+
+      {activeTab === 'escrow' && <Escrow />}
 
       {activeTab === 'scenarios' && <Scenarios />}
     </div>

@@ -7,6 +7,8 @@ import type {
   InvestmentPlan,
   AppSettings,
   FinancialProfile,
+  AnalysisData,
+  EscrowItem,
 } from '@/types';
 
 export class BudgetDatabase extends Dexie {
@@ -17,6 +19,8 @@ export class BudgetDatabase extends Dexie {
   investmentPlans!: Table<InvestmentPlan>;
   settings!: Table<AppSettings>;
   profiles!: Table<FinancialProfile>;
+  analysisData!: Table<AnalysisData>;
+  escrowItems!: Table<EscrowItem>;
 
   constructor() {
     super('BudgetItDB');
@@ -29,6 +33,19 @@ export class BudgetDatabase extends Dexie {
       investmentPlans: 'id, name',
       settings: 'id',
       profiles: 'id, isActive',
+    });
+
+    // Version 2: Add analysis data storage
+    this.version(2).stores({
+      accounts: 'id, category, type, name',
+      transactions: 'id, accountId, date, categoryId, description',
+      categories: 'id, type, name, parentId',
+      recurringRules: 'id, description, accountId',
+      investmentPlans: 'id, name',
+      settings: 'id',
+      profiles: 'id, isActive',
+      analysisData: 'id, type',
+      escrowItems: 'id, name, frequency',
     });
   }
 }

@@ -4,6 +4,7 @@ import { TrendingUp, AlertCircle, Info, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { Button } from '@/components/ui/Button';
+import { ChartTooltip } from '@/components/ui/ChartTooltip';
 import { formatCurrency } from '@/utils/currency';
 import { calculatePortfolioAllocation, type PortfolioInputs } from '@/utils/portfolioAllocation';
 
@@ -183,16 +184,15 @@ export function PortfolioMix() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number, name: string, props: any) => [
-                        `${value.toFixed(1)}% (${formatCurrency(props.payload.amount)})`,
-                        name
-                      ]}
-                      contentStyle={{
-                        backgroundColor: 'rgb(255 255 255 / 0.95)',
-                        border: '1px solid rgb(229 231 235)',
-                        borderRadius: '0.5rem',
-                      }}
-                      wrapperClassName="[&_.recharts-tooltip-wrapper]:dark:text-gray-900"
+                      content={(props) => (
+                        <ChartTooltip
+                          {...props}
+                          formatter={(value: number, name: string, entry: any) => [
+                            `${value.toFixed(1)}% (${formatCurrency(entry.payload?.amount || 0)})`,
+                            name
+                          ]}
+                        />
+                      )}
                     />
                   </PieChart>
                 </ResponsiveContainer>
